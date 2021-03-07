@@ -51,6 +51,7 @@ talk_time:longest time that a single battery charge will last when you are
 three_g:Has 3G or not
 touch_screen:Has touch screen or not
 wifi:Has wifi or not
+price_range: This is the target variable with value of 0(low cost), 1(medium cost), 2(high cost) and 3(very high cost).
 
 ```{r}
 dim(dataSet)
@@ -127,6 +128,7 @@ p3 <- ggplot(dataSet, aes(x=price_range, y = four_g, color=price_range)) +
                outlier.size=4) +
   labs(title = "4G vs Price Range")
 grid.arrange(p1, p2, p3,nrow = 1)
+fig(18, 16)
 ```
 
 
@@ -138,3 +140,27 @@ ggplot(data, aes(MagaPixels, fill = Camera)) +
 
 fig(18, 16)
 ```
+
+
+```{r}
+df <- data.frame(
+  group = c(0, 1, 2, 3),
+  value = c(sum(dataSet$price_range==0), sum(dataSet$price_range==1), sum(dataSet$price_range==2), sum(dataSet$price_range==3))
+  )
+
+bp<- ggplot(df, aes(x="", y=value, fill=group))+
+geom_bar(width = 1, stat = "identity")
+bp
+pie <- bp + coord_polar("y", start=0)
+pie
+fig(18, 16)
+```
+
+```{r}
+forPriceRange0 %>% filter(dataSet$price_range == 0)
+forPriceRange1 %>% filter(dataSet$price_range == 1)
+forPriceRange2 %>% filter(dataSet$price_range == 2)
+forPriceRange3 %>% filter(dataSet$price_range == 3)
+mean(forPriceRange0$battery_power)
+```
+
