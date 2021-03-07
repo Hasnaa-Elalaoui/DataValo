@@ -67,6 +67,7 @@ summary(dataSet)
 
 
 ```{r}
+library(ggcorrplot)
 corr <- round(cor(dataSet), 8)
 ggcorrplot(corr)
 fig(18, 16)
@@ -77,29 +78,9 @@ fig(18, 16)
 str(dataSet)
 ```
 
-Subplots using filtered dataset
-```{r}
-p1 <-  ggplot(dataSet, aes(x=blue, fill=blue)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "Bluetooth") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-p2 <- ggplot(dataSet, aes(x=dual_sim, fill=dual_sim)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "Dual Sim") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-p3 <- ggplot(dataSet, aes(x=four_g, fill=four_g)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "4 G") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-grid.arrange(p1, p2, p3, nrow = 1)
 
-fig(18, 16)
+```{r}
+dataSet$price_range <- as.factor(dataSet$price_range)
 ```
 
 
@@ -112,9 +93,10 @@ prop.table(table(dataSet$touch_screen)) # cell percentages
 prop.table(table(dataSet$wifi)) # cell percentages
 ```
 
-
 Subplots using filtered dataset
 ```{r}
+library(ggplot2)
+library(gridExtra)
 p1 <-  ggplot(dataSet, aes(x=px_width, y = px_height, color=price_range)) +
   geom_boxplot(outlier.colour="red", outlier.shape=8,
                outlier.size=4) +
@@ -133,10 +115,11 @@ fig(18, 16)
 
 
 ```{r}
-data = data.frame(MagaPixels = c(dataSet$fc, dataSet$pc), 
-               Camera = rep(c("Front Camera", "Primary Camera"), c(length(dataSet$fc), length(dataSet$pc))))
-ggplot(data, aes(MagaPixels, fill = Camera)) + 
-  geom_bar(position = 'identity', alpha = .5)
+library(ggplot2)
+data = data.frame(Dimensions_in_cm = c(dataSet$sc_h, dataSet$sc_w), 
+               Screen = rep(c("Height", "Width"), c(length(dataSet$sc_h), length(dataSet$sc_w))))
+ggplot(data, aes(Dimensions_in_cm, fill = Screen)) + 
+  geom_bar(position = 'identity', alpha = .6)
 
 fig(18, 16)
 ```
