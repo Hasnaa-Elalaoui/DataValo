@@ -3,18 +3,70 @@ title: "Analyse Data Set Mobile Price"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+Initialisation et import des données
 
 ```{r}
-plot(cars)
+install.packages("tidyverse")
+install.packages("pacman")
+
+library(tidyverse)
+
+fig <- function(width, heigth){
+     options(repr.plot.width = width, repr.plot.height = heigth)
+}
+
+library(pacman)
+
+pacman::p_load(pacman,dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret, e1071)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
+names(dataSet)
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Affichage du set de données.
+
+Colonnes : battery_power, blue, clock_speed, dual_sim, fc, four_g,int_memory, m_dep, mobile_wt, n_cores, pc, px_height, px_width, ram, sc_h, sc_w, talk_time, three_g, touch_screen, wifi, price_range
+
+battery_power:Total energy a battery can store in one time measured in mAh
+blue:Has bluetooth or not
+clock_speed:speed at which microprocessor executes instructions
+dual_sim:Has dual sim support or not
+fc:Front Camera mega pixels
+four_g:Has 4G or not
+int_memory:Internal Memory in Gigabytes
+m_dep:Mobile Depth in cm
+mobile_wt:Weight of mobile phone
+n_cores:Number of cores of processor
+pc:Primary Camera mega pixels
+px_height:Pixel Resolution Height
+px_width:Pixel Resolution Width
+ram:Random Access Memory in Megabytes
+sc_h:Screen Height of mobile in cm
+sc_w:Screen Width of mobile in cm
+talk_time:longest time that a single battery charge will last when you are
+three_g:Has 3G or not
+touch_screen:Has touch screen or not
+wifi:Has wifi or not
+
+```{r}
+dim(dataSet)
+class(dataSet)
+head(dataSet)
+sapply(dataSet, class)
+```
+
+
+```{r}
+summary(dataSet)
+```
+
+
+```{r}
+corr <- round(cor(dataSet), 8)
+ggcorrplot(corr)
+fig(18, 16)
+```
 
 
