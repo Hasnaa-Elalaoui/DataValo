@@ -18,6 +18,8 @@ fig <- function(width, heigth){
 library(pacman)
 
 pacman::p_load(pacman,dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret, e1071)
+
+dataSet <- read.csv('data/train.csv')
 ```
 
 
