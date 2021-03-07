@@ -78,9 +78,33 @@ fig(18, 16)
 str(dataSet)
 ```
 
-
+Subplots using filtered dataset
 ```{r}
+library(ggplot2)
+library(gridExtra)
+
 dataSet$price_range <- as.factor(dataSet$price_range)
+p1 <-  ggplot(dataSet, aes(x=blue, fill=blue)) +
+  theme_bw() +
+  geom_bar() +
+  ylim(0, 1050) +
+  labs(title = "Bluetooth") +
+  scale_x_discrete(labels = c('Not Supported','Supported'))
+p2 <- ggplot(dataSet, aes(x=dual_sim, fill=dual_sim)) +
+  theme_bw() +
+  geom_bar() +
+  ylim(0, 1050) +
+  labs(title = "Dual Sim") +
+  scale_x_discrete(labels = c('Not Supported','Supported'))
+p3 <- ggplot(dataSet, aes(x=four_g, fill=four_g)) +
+  theme_bw() +
+  geom_bar() +
+  ylim(0, 1050) +
+  labs(title = "4 G") +
+  scale_x_discrete(labels = c('Not Supported','Supported'))
+grid.arrange(p1, p2, p3, nrow = 1)
+
+fig(18, 16)
 ```
 
 
@@ -93,10 +117,18 @@ prop.table(table(dataSet$touch_screen)) # cell percentages
 prop.table(table(dataSet$wifi)) # cell percentages
 ```
 
+
 Subplots using filtered dataset
 ```{r}
 library(ggplot2)
-library(gridExtra)
+data = data.frame(Dimensions_in_cm = c(dataSet$sc_h, dataSet$sc_w), 
+               Screen = rep(c("Height", "Width"), c(length(dataSet$sc_h), length(dataSet$sc_w))))
+ggplot(data, aes(Dimensions_in_cm, fill = Screen)) + 
+  geom_bar(position = 'identity', alpha = .6)
+```
+
+
+```{r}
 p1 <-  ggplot(dataSet, aes(x=px_width, y = px_height, color=price_range)) +
   geom_boxplot(outlier.colour="red", outlier.shape=8,
                outlier.size=4) +
@@ -105,21 +137,30 @@ p2 <- ggplot(dataSet, aes(x=price_range, y = ram, color=price_range)) +
   geom_boxplot(outlier.colour="red", outlier.shape=8,
                outlier.size=4) +
   labs(title = "RAM vs Price Range")
-p3 <- ggplot(dataSet, aes(x=price_range, y = four_g, color=price_range)) +
-  geom_boxplot(outlier.colour="red", outlier.shape=8,
-               outlier.size=4) +
-  labs(title = "4G vs Price Range")
-grid.arrange(p1, p2, p3,nrow = 1)
-fig(18, 16)
+grid.arrange(p1, p2,nrow = 1)
+fig(24, 20)
 ```
 
 
 ```{r}
-library(ggplot2)
-data = data.frame(Dimensions_in_cm = c(dataSet$sc_h, dataSet$sc_w), 
-               Screen = rep(c("Height", "Width"), c(length(dataSet$sc_h), length(dataSet$sc_w))))
-ggplot(data, aes(Dimensions_in_cm, fill = Screen)) + 
-  geom_bar(position = 'identity', alpha = .6)
+p3 <- ggplot(dataSet, aes(x=price_range, y = four_g, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "4G vs Price Range")
+p4 <- ggplot(dataSet, aes(x=price_range, y = battery_power, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "Battery power vs Price Range")
+grid.arrange(p3, p4,nrow = 1)
+fig(24, 20)
+```
+
+
+```{r}
+data = data.frame(MagaPixels = c(dataSet$fc, dataSet$pc), 
+               Camera = rep(c("Front Camera", "Primary Camera"), c(length(dataSet$fc), length(dataSet$pc))))
+ggplot(data, aes(MagaPixels, fill = Camera)) + 
+  geom_bar(position = 'identity', alpha = .5)
 
 fig(18, 16)
 ```
@@ -140,10 +181,16 @@ fig(18, 16)
 ```
 
 ```{r}
-forPriceRange0 %>% filter(dataSet$price_range == 0)
-forPriceRange1 %>% filter(dataSet$price_range == 1)
-forPriceRange2 %>% filter(dataSet$price_range == 2)
-forPriceRange3 %>% filter(dataSet$price_range == 3)
+forPriceRange0 <- dataSet %>% filter(price_range == 0)
 mean(forPriceRange0$battery_power)
+
+forPriceRange1 <- dataSet %>% filter(price_range == 1)
+mean(forPriceRange1$battery_power)
+
+forPriceRange2 <- dataSet %>% filter(price_range == 2)
+mean(forPriceRange2$battery_power)
+
+forPriceRange3 <- dataSet %>% filter(price_range == 3)
+mean(forPriceRange3$battery_power)
 ```
 
