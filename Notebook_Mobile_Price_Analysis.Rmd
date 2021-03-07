@@ -8,6 +8,7 @@ Initialisation et import des données
 ```{r}
 install.packages("tidyverse")
 install.packages("pacman")
+install.packages("dplyr")
 
 library(tidyverse)
 
@@ -78,35 +79,6 @@ fig(18, 16)
 str(dataSet)
 ```
 
-Subplots using filtered dataset
-```{r}
-library(ggplot2)
-library(gridExtra)
-
-dataSet$price_range <- as.factor(dataSet$price_range)
-p1 <-  ggplot(dataSet, aes(x=blue, fill=blue)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "Bluetooth") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-p2 <- ggplot(dataSet, aes(x=dual_sim, fill=dual_sim)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "Dual Sim") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-p3 <- ggplot(dataSet, aes(x=four_g, fill=four_g)) +
-  theme_bw() +
-  geom_bar() +
-  ylim(0, 1050) +
-  labs(title = "4 G") +
-  scale_x_discrete(labels = c('Not Supported','Supported'))
-grid.arrange(p1, p2, p3, nrow = 1)
-
-fig(18, 16)
-```
-
 
 ```{r}
 prop.table(table(dataSet$blue)) # cell percentages
@@ -129,6 +101,8 @@ ggplot(data, aes(Dimensions_in_cm, fill = Screen)) +
 
 
 ```{r}
+library(ggplot2)
+library(gridExtra)
 p1 <-  ggplot(dataSet, aes(x=px_width, y = px_height, color=price_range)) +
   geom_boxplot(outlier.colour="red", outlier.shape=8,
                outlier.size=4) +
@@ -143,6 +117,8 @@ fig(24, 20)
 
 
 ```{r}
+library(ggplot2)
+library(gridExtra)
 p3 <- ggplot(dataSet, aes(x=price_range, y = four_g, color=price_range)) +
   geom_boxplot(outlier.colour="red", outlier.shape=8,
                outlier.size=4) +
@@ -153,16 +129,6 @@ p4 <- ggplot(dataSet, aes(x=price_range, y = battery_power, color=price_range)) 
   labs(title = "Battery power vs Price Range")
 grid.arrange(p3, p4,nrow = 1)
 fig(24, 20)
-```
-
-
-```{r}
-data = data.frame(MagaPixels = c(dataSet$fc, dataSet$pc), 
-               Camera = rep(c("Front Camera", "Primary Camera"), c(length(dataSet$fc), length(dataSet$pc))))
-ggplot(data, aes(MagaPixels, fill = Camera)) + 
-  geom_bar(position = 'identity', alpha = .5)
-
-fig(18, 16)
 ```
 
 
@@ -181,6 +147,7 @@ fig(18, 16)
 ```
 
 ```{r}
+library(dplyr)
 forPriceRange0 <- dataSet %>% filter(price_range == 0)
 mean(forPriceRange0$battery_power)
 
