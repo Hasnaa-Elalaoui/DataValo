@@ -147,45 +147,6 @@ grid.arrange(p3, p4,nrow = 1)
 fig(24, 20)
 ```
 
-
-Data classification depending on battery power, ram, memory, clock speed and number of cores
-```{r}
-library(ggplot2)
-p <- ggplot(dataSet, aes(battery_power, ram, color = price_range))+
-  geom_point()
-p + stat_ellipse()
-p <- ggplot(dataSet, aes(int_memory, ram, color = price_range))+
-  geom_point()
-p + stat_ellipse()
-p <- ggplot(dataSet, aes(x = ram, y = ram, color = price_range))+
-  geom_point()
-p + stat_ellipse()
-
-p <- ggplot(dataSet, aes(x = clock_speed, y = n_cores, color = price_range))+
-  geom_point()
-p
-```
-
-
-3D graphic 
-```{r}
-library(tidyverse)
-library(plotly)
-
-# Creating the graphic
-p <- plot_ly(
-  dataSet, x = dataSet$battery_power, y = dataSet$ram, z = dataSet$int_memory, 
-  color = dataSet$price_range) %>%
-  add_markers(size=1) %>%
-  layout(
-    scene = list(xaxis = list(title = 'Battery Power'),
-        yaxis = list(title = 'Ram'),
-        zaxis = list(title = 'Memoire interne'))
-        )
-p
-```
-
-
 Interquartile range of two features at a time
 ```{r}
 library(dplyr)
@@ -222,3 +183,32 @@ grid.arrange(p2, p3, p4,nrow = 1)
 fig(24, 20)
 ```
 
+Data classification depending on battery power, ram, memory, clock speed and number of cores
+```{r}
+library(ggplot2)
+p <- ggplot(dataSet, aes(battery_power, ram, color = price_range))+
+  geom_point()
+p + stat_ellipse()
+p <- ggplot(dataSet, aes(int_memory, ram, color = price_range))+
+  geom_point()
+p + stat_ellipse()
+```
+
+
+3D graphic 
+```{r}
+library(tidyverse)
+library(plotly)
+
+# Creating the graphic
+p <- plot_ly(
+  dataSet, x = dataSet$battery_power, y = dataSet$ram, z = dataSet$int_memory, 
+  color = dataSet$price_range) %>%
+  add_markers(size=1) %>%
+  layout(
+    scene = list(xaxis = list(title = 'Battery Power'),
+        yaxis = list(title = 'Ram'),
+        zaxis = list(title = 'Memoire interne'))
+        )
+p
+```
