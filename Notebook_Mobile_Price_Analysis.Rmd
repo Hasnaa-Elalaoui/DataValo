@@ -145,6 +145,13 @@ p <- ggplot(dataSet, aes(x = ram, y = ram, color = price_range))+
   geom_point()
 p + stat_ellipse()
 
+p <- ggplot(dataSet, aes(x = clock_speed, y = n_cores, color = price_range))+
+  geom_point()
+p
+```
+
+
+```{r}
 library(tidyverse)
 library(plotly)
 
@@ -159,5 +166,37 @@ p <- plot_ly(
         zaxis = list(title = 'Memoire interne'))
         )
 p
+```
+
+```{r}
+#Battery_power IQR
+firstQuantile <- quantile(dataSet$battery_power, 0.25)
+thirdQuantile <- quantile(dataSet$battery_power, 0.75)
+battery_powerIQR <- dataSet %>% filter(dataSet$battery_power > firstQuantile & dataSet$battery_power < thirdQuantile)
+#Int Memory IQR
+firstQuantile <- quantile(dataSet$int_memory , 0.25)
+thirdQuantile <- quantile(dataSet$int_memory, 0.75)
+int_memoryIQR <- dataSet %>% filter(dataSet$int_memory > firstQuantile & dataSet$int_memory < thirdQuantile)
+#ram IQR
+firstQuantile <- quantile(dataSet$ram , 0.25)
+thirdQuantile <- quantile(dataSet$ram, 0.75)
+ramIQR <- dataSet %>% filter(dataSet$ram > firstQuantile & dataSet$ram < thirdQuantile)
+
+p2 <- ggplot(ramIQR, aes(x=price_range, y = ram, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR RAM vs Price Range")
+
+p3 <- ggplot(int_memoryIQR, aes(x=price_range, y = int_memory, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR int memory vs Price Range")
+
+p4 <- ggplot(battery_powerIQR, aes(x=price_range, y = battery_power, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR battery power vs Price Range")
+grid.arrange(p2, p3, p4,nrow = 1)
+fig(24, 20)
 ```
 
