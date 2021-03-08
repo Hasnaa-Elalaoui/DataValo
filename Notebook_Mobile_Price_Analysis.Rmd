@@ -1,9 +1,9 @@
 ---
-title: "Analyse Data Set Mobile Price"
+title: "Analyzing Data Set Mobile Price"
 output: html_notebook
 ---
 
-Initialisation et import des données
+Initialization and import of data
 
 ```{r}
 install.packages("tidyverse")
@@ -29,9 +29,9 @@ dataSet <- read.csv('data/train.csv')
 names(dataSet)
 ```
 
-Affichage du set de données.
+Display of the set of data.
 
-Colonnes : battery_power, blue, clock_speed, dual_sim, fc, four_g,int_memory, m_dep, mobile_wt, n_cores, pc, px_height, px_width, ram, sc_h, sc_w, talk_time, three_g, touch_screen, wifi, price_range
+Columns : battery_power, blue, clock_speed, dual_sim, fc, four_g,int_memory, m_dep, mobile_wt, n_cores, pc, px_height, px_width, ram, sc_h, sc_w, talk_time, three_g, touch_screen, wifi, price_range
 
 battery_power:Total energy a battery can store in one time measured in mAh
 blue:Has bluetooth or not
@@ -67,7 +67,7 @@ sapply(dataSet, class)
 summary(dataSet)
 ```
 
-
+Correlation plot showing the features that are the most linked between each others
 ```{r}
 library(ggcorrplot)
 corr <- round(cor(dataSet), 8)
@@ -80,6 +80,7 @@ fig(18, 16)
 str(dataSet)
 ```
 
+Displaying the cell percentages of different features of the dataSet
 ```{r}
 prop.table(table(dataSet$blue)) # cell percentages
 prop.table(table(dataSet$dual_sim)) # cell percentages
@@ -90,7 +91,7 @@ prop.table(table(dataSet$wifi)) # cell percentages
 ```
 
 
-Subplots using filtered dataset
+Subplots using filtered dataSet showing the impact of the screen height and width on the mobile's price range
 ```{r}
 library(ggplot2)
 data = data.frame(Dimensions_in_cm = c(dataSet$sc_h, dataSet$sc_w), 
@@ -99,7 +100,7 @@ ggplot(data, aes(Dimensions_in_cm, fill = Screen)) +
   geom_bar(position = 'identity', alpha = .6)
 ```
 
-
+Comparing the impact of two features on the mobile's price range
 ```{r}
 library(ggplot2)
 library(gridExtra)
@@ -116,7 +117,7 @@ grid.arrange(p1, p2,nrow = 1)
 fig(24, 20)
 ```
 
-
+Comparing the impact of two features on the mobile's price range
 ```{r}
 library(ggplot2)
 library(gridExtra)
@@ -133,6 +134,8 @@ grid.arrange(p3, p4,nrow = 1)
 fig(24, 20)
 ```
 
+
+Data classification depending on battery power, ram, memory, clock speed and number of cores
 ```{r}
 library(ggplot2)
 p <- ggplot(dataSet, aes(battery_power, ram, color = price_range))+
@@ -151,11 +154,12 @@ p
 ```
 
 
+3D graphic 
 ```{r}
 library(tidyverse)
 library(plotly)
 
-# Créer le graphique
+# Creating the graphic
 p <- plot_ly(
   dataSet, x = dataSet$battery_power, y = dataSet$ram, z = dataSet$int_memory, 
   color = dataSet$price_range) %>%
@@ -168,7 +172,12 @@ p <- plot_ly(
 p
 ```
 
+
+Interquartile range of two features at a time
 ```{r}
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
 #Battery_power IQR
 firstQuantile <- quantile(dataSet$battery_power, 0.25)
 thirdQuantile <- quantile(dataSet$battery_power, 0.75)
