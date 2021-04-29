@@ -1,0 +1,320 @@
+---
+title: "Analyzing Data Set Mobile Price With Kmeans and Logistic Regression"
+output: html_notebook
+---
+
+Initialization and import of data
+
+```{r}
+install.packages("tidyverse")
+install.packages("pacman")
+install.packages("dplyr")
+install.packages("plotly")
+install.packages("VGAM")
+
+library(tidyverse)
+
+fig <- function(width, heigth){
+     options(repr.plot.width = width, repr.plot.height = heigth)
+}
+
+library(pacman)
+
+pacman::p_load(pacman,dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret, e1071)
+
+dataSet <- read.csv('data/train.csv')
+```
+
+
+```{r}
+names(dataSet)
+```
+
+Display of the set of data.
+
+Columns : battery_power, blue, clock_speed, dual_sim, fc, four_g,int_memory, m_dep, mobile_wt, n_cores, pc, px_height, px_width, ram, sc_h, sc_w, talk_time, three_g, touch_screen, wifi, price_range
+
+battery_power:Total energy a battery can store in one time measured in mAh
+blue:Has bluetooth or not
+clock_speed:speed at which microprocessor executes instructions
+dual_sim:Has dual sim support or not
+fc:Front Camera mega pixels
+four_g:Has 4G or not
+int_memory:Internal Memory in Gigabytes
+m_dep:Mobile Depth in cm
+mobile_wt:Weight of mobile phone
+n_cores:Number of cores of processor
+pc:Primary Camera mega pixels
+px_height:Pixel Resolution Height
+px_width:Pixel Resolution Width
+ram:Random Access Memory in Megabytes
+sc_h:Screen Height of mobile in cm
+sc_w:Screen Width of mobile in cm
+talk_time:longest time that a single battery charge will last when you are
+three_g:Has 3G or not
+touch_screen:Has touch screen or not
+wifi:Has wifi or not
+price_range: This is the target variable with value of 0(low cost), 1(medium cost), 2(high cost) and 3(very high cost).
+
+```{r}
+dim(dataSet)
+class(dataSet)
+head(dataSet)
+sapply(dataSet, class)
+```
+
+
+```{r}
+summary(dataSet)
+```
+
+```{r}
+library(ggplot2)
+df <- data.frame(
+  group = c(0, 1, 2, 3),
+  value = c(sum(dataSet$price_range==0), sum(dataSet$price_range==1), sum(dataSet$price_range==2), sum(dataSet$price_range==3))
+  )
+bp<- ggplot(df, aes(x="", y=value, fill=group))+
+geom_bar(width = 1, stat = "identity")
+bp
+pie <- bp + coord_polar("y", start=0)
+pie
+fig(18, 16)
+```
+
+Correlation plot showing the features that are the most linked between each others
+```{r}
+library(ggcorrplot)
+corr <- round(cor(dataSet), 8)
+ggcorrplot(corr)
+fig(18, 16)
+```
+
+
+```{r}
+str(dataSet)
+```
+
+Displaying the cell percentages of different features of the dataSet
+```{r}
+prop.table(table(dataSet$blue)) # cell percentages
+prop.table(table(dataSet$dual_sim)) # cell percentages
+prop.table(table(dataSet$four_g)) # cell percentages
+prop.table(table(dataSet$three_g)) # cell percentages
+prop.table(table(dataSet$touch_screen)) # cell percentages
+prop.table(table(dataSet$wifi)) # cell percentages
+```
+
+
+Subplots using filtered dataSet showing the impact of the screen height and width on the mobile's price range
+```{r}
+library(ggplot2)
+data = data.frame(Dimensions_in_cm = c(dataSet$sc_h, dataSet$sc_w), 
+               Screen = rep(c("Height", "Width"), c(length(dataSet$sc_h), length(dataSet$sc_w))))
+ggplot(data, aes(Dimensions_in_cm, fill = Screen)) + 
+  geom_bar(position = 'identity', alpha = .6)
+```
+
+Comparing the impact of two features on the mobile's price range
+```{r}
+library(ggplot2)
+library(gridExtra)
+dataSet$price_range <- as.factor(dataSet$price_range)
+p1 <-  ggplot(dataSet, aes(x=px_width, y = px_height, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "Pixel Resolution Height vs Pixel Resolution Width")
+p2 <- ggplot(dataSet, aes(x=price_range, y = ram, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "RAM vs Price Range")
+grid.arrange(p1, p2,nrow = 1)
+fig(24, 20)
+```
+
+Comparing the impact of two features on the mobile's price range
+```{r}
+library(ggplot2)
+library(gridExtra)
+dataSet$price_range <- as.factor(dataSet$price_range)
+p3 <- ggplot(dataSet, aes(x=price_range, y = int_memory, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "int_memory vs Price Range")
+p4 <- ggplot(dataSet, aes(x=price_range, y = battery_power, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "Battery power vs Price Range")
+grid.arrange(p3, p4,nrow = 1)
+fig(24, 20)
+```
+
+Interquartile range of two features at a time
+```{r}
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+#Battery_power IQR
+firstQuantile <- quantile(dataSet$battery_power, 0.25)
+thirdQuantile <- quantile(dataSet$battery_power, 0.75)
+battery_powerIQR <- dataSet %>% filter(dataSet$battery_power > firstQuantile & dataSet$battery_power < thirdQuantile)
+#Int Memory IQR
+firstQuantile <- quantile(dataSet$int_memory , 0.25)
+thirdQuantile <- quantile(dataSet$int_memory, 0.75)
+int_memoryIQR <- dataSet %>% filter(dataSet$int_memory > firstQuantile & dataSet$int_memory < thirdQuantile)
+#ram IQR
+firstQuantile <- quantile(dataSet$ram , 0.25)
+thirdQuantile <- quantile(dataSet$ram, 0.75)
+ramIQR <- dataSet %>% filter(dataSet$ram > firstQuantile & dataSet$ram < thirdQuantile)
+
+p2 <- ggplot(ramIQR, aes(x=price_range, y = ram, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR RAM vs Price Range")
+
+p3 <- ggplot(int_memoryIQR, aes(x=price_range, y = int_memory, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR int memory vs Price Range")
+
+p4 <- ggplot(battery_powerIQR, aes(x=price_range, y = battery_power, color=price_range)) +
+  geom_boxplot(outlier.colour="red", outlier.shape=8,
+               outlier.size=4) +
+  labs(title = "IQR battery power vs Price Range")
+grid.arrange(p2, p3, p4,nrow = 1)
+fig(24, 20)
+```
+
+Data classification depending on battery power, ram, memory, clock speed and number of cores
+```{r}
+library(ggplot2)
+p <- ggplot(dataSet, aes(battery_power, ram, color = price_range))+
+  geom_point()
+p + stat_ellipse()
+p <- ggplot(dataSet, aes(int_memory, ram, color = price_range))+
+  geom_point()
+p + stat_ellipse()
+```
+
+
+3D graphic 
+```{r}
+library(tidyverse)
+library(plotly)
+
+# Creating the graphic
+p <- plot_ly(
+  dataSet, x = dataSet$battery_power, y = dataSet$ram, z = dataSet$int_memory, 
+  color = dataSet$price_range) %>%
+  add_markers(size=1) %>%
+  layout(
+    scene = list(xaxis = list(title = 'Battery Power'),
+        yaxis = list(title = 'Ram'),
+        zaxis = list(title = 'Memoire interne'))
+        )
+p
+```
+```{r}
+extractDataFromDataSet <-  dataSet %>%select(1, 14, 21) # battery = 1 ,memory = 7, ram = 14, mobile class = 21
+set.seed(101)
+extractDataFromDataSet[,1:2]
+ggplot(extractDataFromDataSet,aes(x = extractDataFromDataSet$battery_power, y = extractDataFromDataSet$ram, col= extractDataFromDataSet$price_range)) + geom_point()
+dataCluster <- kmeans(extractDataFromDataSet[,1:2], center=4, nstart=100)
+dataCluster
+table(dataCluster$cluster, extractDataFromDataSet$price_range)
+library(cluster)
+clusplot(extractDataFromDataSet, dataCluster$cluster, color=T, shade=T, labels=0, lines=0)
+```
+
+```{r}
+set.seed(101)
+dataCluster <- kmeans(dataSet[,1:20], center=4, nstart=100)
+dataCluster
+table(dataCluster$cluster, dataSet$price_range)
+library(cluster)
+clusplot(dataSet, dataCluster$cluster, color=T, shade=T, labels=0, lines=0)
+```
+
+```{r}
+library(VGAM)
+seed <- 1809
+set.seed(seed)
+
+library(caret) # For the confusion matrix
+install.packages('MLmetrics')
+library(MLmetrics)
+
+n <- nrow(dataSet)
+# Select only the relevant variables
+ReducedDataSet <- subset(dataSet, select=c("battery_power", "ram", "price_range"))
+
+# Define the folds
+n_folds <- 10 # number of folds
+folds_i <- sample(rep(1:n_folds, length.out = n)) # generate the folds
+
+# Initialization of the outputs
+accuracy <- matrix(NA, nrow = n_folds, ncol = 1)
+sensitivity <- matrix(NA, nrow = n_folds, ncol = 1)
+specificity <- matrix(NA, nrow = n_folds, ncol = 1)
+
+for (k in 1:n_folds) {
+  test_i <- which(folds_i == k)
+
+  # Prepare the fold datasets (train and test)
+  trainfold <- ReducedDataSet[-test_i, ]
+  testfold <- ReducedDataSet[test_i, ]
+  
+  # Now feed it to vglm
+  fitted_model <- vglm(formula = price_range ~  . , data=trainfold, family=multinomial)
+  
+  predictions=predict(fitted_model, testfold, type ="response")
+  predictions
+  predictions.results <- ifelse(predictions > 0.5, "yes", "no") # transform the output in "yes/no"
+  predictions.results
+  
+  true_result_price_range <- predictions.results # copy to get the 
+  true_result_price_range[,1] <- ifelse(testfold[,3] == 0, "yes", "no") # transform the output in "yes/no"
+  true_result_price_range[,2] <- ifelse(testfold[,3] == 1, "yes", "no") # transform the output in "yes/no"
+  true_result_price_range[,3] <- ifelse(testfold[,3] == 2, "yes", "no") # transform the output in "yes/no"
+  true_result_price_range[,4] <- ifelse(testfold[,3] == 3, "yes", "no") # transform the output in "yes/no"
+  
+  true_result_price_range
+  
+  # Compute the confusion matrix and the accuracy
+  cM <- confusionMatrix(as.factor(predictions.results), as.factor(true_result_price_range), positive = "yes")
+  cM
+  accuracy[k] <- cM$overall[1]
+  sensitivity[k] <- cM$byClass[1] # true positive rate
+  specificity[k] <- cM$byClass[2] # true negative rate
+  
+  score <- F1_Score(y_pred = predictions.results, y_true = true_result_price_range)
+  print(paste0(k, paste0(" nbFold, Score F : ", score)))
+}
+
+
+# Plot the accuracy, the false negative rate and the false positive rate
+par(mfrow = c(2, 2)) # plot the results on the same figure
+
+plt1 <- plot(seq(1,n_folds), accuracy, 
+     type = "l", lwd = 2, col = "blue", 
+     ylab = "Accuracy", xlab = "Fold number", 
+     main = paste0(n_folds, "-fold Cross-Validation"), 
+     ylim = c(0.01, 1) 
+     )
+
+plt2<-plot(seq(1,n_folds), 1-sensitivity, 
+     type = "l", lwd = 2, col = "red", 
+     ylab = "False negative rate", xlab = "Fold number", 
+     main = paste0(n_folds, "-fold Cross-Validation"), 
+     ylim = c(0.01, 1) 
+)
+
+plt3<-plot(seq(1,n_folds), 1-specificity, 
+     type = "l", lwd = 2, col = "green", 
+     ylab = "False positive rate", xlab = "Fold number", 
+     main = paste0(n_folds, "-fold Cross-Validation"), 
+     ylim = c(0.01, 1) 
+)
+
+```
+
